@@ -1,41 +1,23 @@
 import { App } from "./app";
 import { Bike } from "./bike";
 import { User } from "./user";
+import { Location } from "./location"
+import sinon from "sinon"
 
-const app = new App()
-const bike1 = new Bike("Caloi", "mountain bike", 100, 200, 150.5, "My bike", 5, [])
-const bike2 = new Bike("Oggi", "street bike", 100, 200, 150.5, "My bike", 5, [])
-const user1 = new User("Jose", "jose@email.com", "1234")
-const user2 = new User("Maria", "maria@email.com", "4321")
-const user3 = new User("Joao", "joao@email.com", "5678")
-const bikeId1 = app.registerBike(bike1)
+async function main() {
+    const clock = sinon.useFakeTimers()
+    const app = new App()
+    const user1 = new User("Jose", "jose@email.com", "1234")
+    await app.registerUser(user1)
+    const place = new Location(0.0, 0.0)
 
-const yesterday = new Date()
-const today = new Date()
-const tomorrow = new Date()
-const dayAfterTomorrow = new Date()
-const twoDaysFromToday = new Date()
-yesterday.setDate(yesterday.getDate() - 1)
-tomorrow.setDate(tomorrow.getDate() + 1)
-dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2)
-twoDaysFromToday.setDate(twoDaysFromToday.getDate() + 3)
+    const bike = new Bike("caloi mountain", "mountain bike",
+        1234, 1234, 100.0, "My bike", 5, [])
+    app.registerBike(bike)
+    clock.tick(1000 * 60 * 60)
+    app.moveBikeTo(bike.id, place)
 
-app.registerUser(user1)
-app.registerUser(user2)
-app.rentBike(bikeId1, "jose@email.com", yesterday, tomorrow)
+    console.log(bike.location)
+}
 
-console.log("Before:")
-app.listUsers()
-app.listBikes()
-app.listRents()
-app.userAuthenticator(user1.id, user1.password)
-
-app.registerUser(user3)
-const bikeId2 = app.registerBike(bike2)
-app.rentBike(bikeId2, "maria@email.com", today, twoDaysFromToday)
-
-console.log("\nAfter:")
-app.listUsers()
-app.listBikes()
-app.listRents()
-app.userAuthenticator(user3.id, user3.password)
+main()
