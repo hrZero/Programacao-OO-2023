@@ -34,6 +34,11 @@ describe("App", () => {
     })
 
     it("should raise an exception when trying to move an unregistered bike", () => {
-        
+        const app = new App()
+        const bike = new Bike("caloi mountain", "mountain bike",
+            1234, 1234, 100.0, "My bike", 5, [])
+        const newYork = new Location(40.753056, -73.983056)
+
+        expect(app.bikes.some(rBike => rBike === bike)).toBeFalsy()
     })
 })
