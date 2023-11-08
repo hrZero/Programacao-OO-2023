@@ -1,29 +1,51 @@
-import { UserRepo } from "../../ports/user-repo";
-import { User } from "../../user";
-import prisma from "./db"
+import { PrismaUserRepo } from "../../../src/external/database/prisma-user-repo"
+import { User } from "../../../src/user"
+import prisma from "../../../src/external/database/db"
 
-export class PrismaUserRepo implements UserRepo {
+describe('PrismaUserRepo', () => {
+    beforeEach(async () => {
+        await prisma.user.deleteMany({})
+    })
 
-    async find(email: string): Promise<User> {
-        return await prisma.user.findFirst({
-            where: { email }
-        })
-    }
+    afterAll(async () => {
+        await prisma.user.deleteMany({})
+    })
 
-    async add(user: User): Promise<string> {
-        const addedUser = await prisma.user.create({
-            data: { ...user }
-        })
-        return addedUser.id
-    }
+    it('adds a user in the database', async () => {
+        const userToBePersisted = new User(
+            'test user',
+            'test@mail.com',
+            '1234'
+        )
+        const repo = new PrismaUserRepo()
+        const userId = await repo.add(userToBePersisted)
+        expect(userId).toBeDefined()
+        const persistedUser = await repo.find(userToBePersisted.email)
+        expect(persistedUser.name).toEqual(
+            userToBePersisted.name
+        )
+    })
 
-    async remove(email: string): Promise<void> {
-        await prisma.user.delete({
-            where: { email }
-        })
-    }
+    it('removes a user from the database', async () => {
+        const userToBePersisted = new User(
+            'test user',
+            'test@mail.com',
+            '1234'
+        )
+        const repo = new PrismaUserRepo()
+        await repo.add(userToBePersisted)
+        await repo.remove('test@mail.com')
+        const removedUser = await repo.find('test@mail.com')
+        expect(removedUser).toBeNull()
+    })
 
-    async list(): Promise<User[]> {
-        return await prisma.user.findMany({})
-    }
-}
+    it('lists users in the database', async () => {
+        const user1 = new User('user1', 'user1@mail.com', '1234')
+        const user2 = new User('user2', 'user2@mail.com', '1234')
+        const repo = new PrismaUserRepo()
+        await repo.add(user1)
+        await repo.add(user2)
+        const userList = await repo.list()
+        expect(userList.length).toEqual(2)
+    })
+})
